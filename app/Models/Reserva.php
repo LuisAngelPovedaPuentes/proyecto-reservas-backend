@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Cancha; // Importante para la relación
 
 class Reserva extends Model
 {
@@ -14,4 +15,10 @@ class Reserva extends Model
         'total_pago',
         'estado'
     ];
+
+    // Relación para saber a qué cancha pertenece la reserva
+    public function cancha()
+    {
+        return $this->belongsTo(Cancha::class);
+    }
 }
