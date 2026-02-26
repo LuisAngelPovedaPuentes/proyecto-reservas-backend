@@ -2,55 +2,79 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cancha; // IMPORTANTE: Asegúrate de que esta línea esté aquí
+use App\Models\Cancha;
 use Illuminate\Http\Request;
 
 class CanchaController extends Controller
 {
-    // Listar todas las canchas (Para que Angular las muestre después)
+    // 1. LISTAR: Muestra todas las canchas en el panel de Alejandra
     public function index()
     {
         return response()->json(Cancha::all(), 200);
     }
 
-    // Guardar una nueva cancha (Lo que ya probaste)
+    // 2. CREAR: Guarda una nueva cancha
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'tipo_deporte' => 'required|string',
-            'precio_por_hora' => 'required|numeric',
+            'nombre'          => 'required|string|max:255',
+            'tipo_deporte'    => 'required|string',
+            'precio_por_hora' => 'required|numeric|min:0',
+            'imagen'          => 'nullable|string',
+            'esta_activa'     => 'boolean'
         ]);
 
         $cancha = Cancha::create($validated);
-        return response()->json($cancha, 201);
+        return response()->json([
+            'message' => 'Cancha creada con éxito',
+            'data' => $cancha
+        ], 201);
     }
 
-    // Mostrar una sola cancha por ID
+    // 3. MOSTRAR: Ver detalles de una sola cancha
     public function show($id)
     {
         $cancha = Cancha::find($id);
-        if (!$cancha) return response()->json(['message' => 'No encontrada'], 404);
+        if (!$cancha) {
+            return response()->json(['message' => 'Error: La cancha no existe'], 404);
+        }
         return response()->json($cancha, 200);
     }
 
-    // Actualizar datos de una cancha (Semana 5: Gestión de canchas)
+    // 4. ACTUALIZAR: Modificar nombre, precio o estado (Semana 5)
     public function update(Request $request, $id)
     {
         $cancha = Cancha::find($id);
-        if (!$cancha) return response()->json(['message' => 'No encontrada'], 404);
+        if (!$cancha) {
+            return response()->json(['message' => 'Error: Cancha no encontrada para actualizar'], 404);
+        }
 
-        $cancha->update($request->all());
-        return response()->json($cancha, 200);
+        // Validamos solo lo que se envía para permitir actualizaciones parciales
+        $validated = $request->validate([
+            'nombre'          => 'sometimes|string|max:255',
+            'tipo_deporte'    => 'sometimes|string',
+            'precio_por_hora' => 'sometimes|numeric|min:0',
+            'imagen'          => 'nullable|string',
+            'esta_activa'     => 'boolean'
+        ]);
+
+        $cancha->update($validated);
+
+        return response()->json([
+            'message' => 'Cancha actualizada correctamente',
+            'data' => $cancha
+        ], 200);
     }
 
-    // Eliminar o dar de baja (Semana 5: Dar de baja escenarios)
+    // 5. ELIMINAR: Borrar permanentemente el escenario (Semana 5)
     public function destroy($id)
     {
         $cancha = Cancha::find($id);
-        if (!$cancha) return response()->json(['message' => 'No encontrada'], 404);
+        if (!$cancha) {
+            return response()->json(['message' => 'Error: La cancha ya no existe'], 404);
+        }
 
         $cancha->delete();
-        return response()->json(['message' => 'Cancha eliminada'], 200);
+        return response()->json(['message' => 'Cancha eliminada del sistema'], 200);
     }
 }
