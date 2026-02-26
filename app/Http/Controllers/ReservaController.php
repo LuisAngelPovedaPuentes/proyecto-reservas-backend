@@ -36,7 +36,8 @@ class ReservaController extends Controller
         }
 
         $reserva = Reserva::create($validated);
-        return response()->json($reserva, 201);
+        // En lugar de retornar solo $reserva, cargamos la relación 'cancha'
+        return response()->json($reserva->load('cancha'), 201);
     }
 
     public function destroy($id)
