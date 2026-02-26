@@ -4,13 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Cancha;
 use Illuminate\Http\Request;
+// Importamos Reserva por si en el futuro necesitas validar si una cancha tiene reservas antes de borrarla
+use App\Models\Reserva;
 
 class CanchaController extends Controller
 {
-    // 1. LISTAR: Muestra todas las canchas en el panel de Alejandra
+    // 1. LISTAR: Muestra todas las canchas
     public function index()
     {
-        return response()->json(Cancha::all(), 200);
+        // Es mejor práctica devolverlo así para asegurar que siempre sea un array JSON
+        $canchas = Cancha::all();
+        return response()->json($canchas, 200);
     }
 
     // 2. CREAR: Guarda una nueva cancha
@@ -25,6 +29,7 @@ class CanchaController extends Controller
         ]);
 
         $cancha = Cancha::create($validated);
+
         return response()->json([
             'message' => 'Cancha creada con éxito',
             'data' => $cancha
@@ -35,21 +40,23 @@ class CanchaController extends Controller
     public function show($id)
     {
         $cancha = Cancha::find($id);
+
         if (!$cancha) {
             return response()->json(['message' => 'Error: La cancha no existe'], 404);
         }
+
         return response()->json($cancha, 200);
     }
 
-    // 4. ACTUALIZAR: Modificar nombre, precio o estado (Semana 5)
+    // 4. ACTUALIZAR: Modificar datos de la cancha
     public function update(Request $request, $id)
     {
         $cancha = Cancha::find($id);
+
         if (!$cancha) {
-            return response()->json(['message' => 'Error: Cancha no encontrada para actualizar'], 404);
+            return response()->json(['message' => 'Error: Cancha no encontrada'], 404);
         }
 
-        // Validamos solo lo que se envía para permitir actualizaciones parciales
         $validated = $request->validate([
             'nombre'          => 'sometimes|string|max:255',
             'tipo_deporte'    => 'sometimes|string',
@@ -66,13 +73,17 @@ class CanchaController extends Controller
         ], 200);
     }
 
-    // 5. ELIMINAR: Borrar permanentemente el escenario (Semana 5)
+    // 5. ELIMINAR: Borrar la cancha
     public function destroy($id)
     {
         $cancha = Cancha::find($id);
+
         if (!$cancha) {
-            return response()->json(['message' => 'Error: La cancha ya no existe'], 404);
+            return response()->json(['message' => 'Error: La cancha no existe'], 404);
         }
+
+        // OPCIONAL: Podrías verificar si tiene reservas antes de borrar
+        // if ($cancha->reservas()->count() > 0) { ... }
 
         $cancha->delete();
         return response()->json(['message' => 'Cancha eliminada del sistema'], 200);
