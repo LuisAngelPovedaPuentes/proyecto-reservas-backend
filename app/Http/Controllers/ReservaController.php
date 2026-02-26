@@ -10,7 +10,7 @@ class ReservaController extends Controller
 {
     public function index()
     {
-        // Usamos "with" para traer datos de la cancha relacionada
+        // Traemos las reservas con la información de la cancha
         return response()->json(Reserva::with('cancha')->get(), 200);
     }
 
@@ -24,7 +24,7 @@ class ReservaController extends Controller
             'total_pago'     => 'required|numeric'
         ]);
 
-        // Validación de disponibilidad
+        // Validación de disponibilidad (Corregido el guion bajo _)
         $ocupada = Reserva::where('cancha_id', $request->cancha_id)
             ->where(function ($query) use ($request) {
                 $query->whereBetween('fecha_inicio', [$request->fecha_inicio, $request->fecha_fin])
@@ -42,9 +42,11 @@ class ReservaController extends Controller
     public function destroy($id)
     {
         $reserva = Reserva::find($id);
-        if (!$reserva) return response()->json(['message' => 'Reserva no encontrada'], 404);
+        if (!$reserva) {
+            return response()->json(['message' => 'Reserva no encontrada'], 404);
+        }
 
-        $reserva->update(['estado' => 'cancelada']);
-        return response()->json(['message' => 'Reserva cancelada con éxito'], 200);
+        $reserva->delete();
+        return response()->json(['message' => 'Reserva eliminada con éxito'], 200);
     }
 }
