@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Cancha; // Importante para la relación
+use App\Models\Cancha;
 
 class Reserva extends Model
 {
     protected $fillable = [
-        'cancha_id',
+        'cancha_id',     // <--- ESTA ES LA QUE FALTA EN TU IMAGEN
         'nombre_cliente',
         'fecha_inicio',
         'fecha_fin',
@@ -16,7 +16,6 @@ class Reserva extends Model
         'estado'
     ];
 
-    // Relación para saber a qué cancha pertenece la reserva
     public function cancha()
     {
         return $this->belongsTo(Cancha::class);
