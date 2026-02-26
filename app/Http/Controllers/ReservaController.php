@@ -8,24 +8,23 @@ use Illuminate\Http\Request;
 
 class ReservaController extends Controller
 {
-    // LISTAR: Ver todas las reservas
     public function index()
     {
+        // Usamos "with" para traer datos de la cancha relacionada
         return response()->json(Reserva::with('cancha')->get(), 200);
     }
 
-    // CREAR: Guardar reserva y validar que el horario esté libre
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'cancha_id' => 'required|exists:canchas,id',
+            'cancha_id'      => 'required|exists:canchas,id',
             'nombre_cliente' => 'required|string',
-            'fecha_inicio' => 'required|date',
-            'fecha_fin' => 'required|date|after:fecha_inicio',
-            'total_pago' => 'required|numeric'
+            'fecha_inicio'   => 'required|date',
+            'fecha_fin'      => 'required|date|after:fecha_inicio',
+            'total_pago'     => 'required|numeric'
         ]);
 
-        // Revisar si la cancha ya está ocupada
+        // Validación de disponibilidad
         $ocupada = Reserva::where('cancha_id', $request->cancha_id)
             ->where(function ($query) use ($request) {
                 $query->whereBetween('fecha_inicio', [$request->fecha_inicio, $request->fecha_fin])
@@ -40,13 +39,10 @@ class ReservaController extends Controller
         return response()->json($reserva, 201);
     }
 
-    // CANCELAR: Cambiar estado a cancelada
     public function destroy($id)
     {
         $reserva = Reserva::find($id);
-        if (!$reserva) {
-            return response()->json(['message' => 'Reserva no encontrada'], 404);
-        }
+        if (!$reserva) return response()->json(['message' => 'Reserva no encontrada'], 404);
 
         $reserva->update(['estado' => 'cancelada']);
         return response()->json(['message' => 'Reserva cancelada con éxito'], 200);
