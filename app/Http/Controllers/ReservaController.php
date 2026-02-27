@@ -38,6 +38,25 @@ class ReservaController extends Controller
     // 3. Calcular el total
     $totalCalculado = $horas * $cancha->precio_por_hora;
 
+    // Dentro de la función store, después de las validaciones iniciales:
+
+    $horaInicio = (int)$inicio->format('H');
+    $horaFin = (int)$fin->format('H');
+
+    // Supongamos que el complejo abre de 08:00 a 22:00
+    if ($horaInicio < 8 || $horaFin > 22) {
+        return response()->json([
+            'message' => 'Lo sentimos El centro deportivo solo atiende de 08:00 AM a 10:00 PM'
+        ], 400);
+    }
+
+        $ahora = new \DateTime();
+    if ($inicio < $ahora) {
+        return response()->json([
+            'message' => 'No puedes realizar una reserva para una fecha o hora que ya pasó'
+        ], 400);
+    }
+
     // 4. Validación de disponibilidad (la que ya tenías)
     $ocupada = Reserva::where('cancha_id', $request->cancha_id)
         ->where(function ($query) use ($request) {
@@ -70,6 +89,59 @@ class ReservaController extends Controller
         }
 
         $reserva->delete();
-        return response()->json(['message' => 'Reserva eliminada con éxito'], 200);
+        return response()->json(['message' => 'Se Cancelo la Reserva con éxito'], 200);
+    }
+
+    public function update(Request $request, $id)
+{
+    $reserva = Reserva::find($id);
+
+    if (!$reserva) {
+        return response()->json(['message' => 'Reserva no encontrada'], 404);
+    }
+
+    $validated = $request->validate([
+        'cancha_id'      => 'exists:canchas,id',
+        'nombre_cliente' => 'string',
+        'fecha_inicio'   => 'date',
+        'fecha_fin'      => 'date|after:fecha_inicio',
+    ]);
+
+    // 1. Si cambian las fechas o la cancha, recalculamos el precio
+    $canchaId = $request->cancha_id ?? $reserva->cancha_id;
+    $fechaInicio = $request->fecha_inicio ?? $reserva->fecha_inicio;
+    $fechaFin = $request->fecha_fin ?? $reserva->fecha_fin;
+
+    $cancha = Cancha::find($canchaId);
+    $inicio = new \DateTime($fechaInicio);
+    $fin = new \DateTime($fechaFin);
+    $horas = $inicio->diff($fin)->h + ($inicio->diff($fin)->i / 60) + ($inicio->diff($fin)->days * 24);
+
+    $totalCalculado = $horas * $cancha->precio_por_hora;
+
+    // 2. Validación de disponibilidad (Excluyendo la reserva actual)
+    $ocupada = Reserva::where('cancha_id', $canchaId)
+        ->where('id', '!=', $id) // IMPORTANTE: No compararse con sí misma
+        ->where(function ($query) use ($fechaInicio, $fechaFin) {
+            $query->whereBetween('fecha_inicio', [$fechaInicio, $fechaFin])
+                  ->orWhereBetween('fecha_fin', [$fechaInicio, $fechaFin]);
+        })->exists();
+
+    if ($ocupada) {
+        return response()->json(['message' => 'El nuevo horario se cruza con otra reserva'], 400);
+    }
+
+    // 3. Actualizamos los datos
+    $reserva->update(array_merge($validated, ['total_pago' => $totalCalculado]));
+
+    return response()->json($reserva->load('cancha'), 200);
+}
+    public function reservasPorCancha($cancha_id)
+    {
+    $reservas = Reserva::where('cancha_id', $cancha_id)
+                        ->orderBy('fecha_inicio', 'asc')
+                        ->get();
+
+    return response()->json($reservas, 200);
     }
 }

@@ -7,3 +7,4 @@ use App\Http\Controllers\ReservaController; // Esta línea es fundamental
 
 Route::apiResource('canchas', CanchaController::class);
 Route::apiResource('reservas', ReservaController::class);
+Route::get('canchas/{id}/reservas', [ReservaController::class, 'reservasPorCancha']);
