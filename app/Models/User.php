@@ -2,47 +2,52 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+// 1. IMPORTANTE: Importamos la interfaz de JWT
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+// 2. AGREGAMOS "implements JWTSubject" a la clase
+class User extends Authenticatable implements JWTSubject
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role', // Lo usaremos para diferenciar Admin de Cliente
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * 3. MÉTODO OBLIGATORIO: Identificador del Token
+     * Sirve para que el token sepa a qué ID de usuario pertenece.
      */
-    protected function casts(): array
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * 4. MÉTODO OBLIGATORIO: Datos extra del Token
+     * Aquí podemos meter el "rol" para que Angular sepa si eres Admin o no.
+     */
+    public function getJWTCustomClaims()
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'role' => $this->role,
         ];
     }
 }
