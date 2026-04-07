@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // <--- ESTA ES LA LÍNEA QUE FALTA
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -37,24 +39,27 @@ class AuthController extends Controller
 
     // 2. INICIO DE SESIÓN (LOGIN)
     public function login(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
+{
+    $credentials = $request->only('email', 'password');
 
-        if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Credenciales inválidas'], 401);
-        }
-
-        return $this->respondWithToken($token);
+    // Intentamos autenticar con JWT
+    if (!$token = JWTAuth::attempt($credentials)) {
+        return response()->json(['message' => 'Credenciales incorrectas'], 401);
     }
 
-    // 3. ESTRUCTURA DEL TOKEN DE RESPUESTA
-    protected function respondWithToken($token)
-    {
-        return response()->json([
-            'access_token' => $token,
-            'token_type'   => 'bearer',
-            'expires_in'   => auth()->factory()->getTTL() * 60,
-            'user'         => auth()->user() // Esto le servirá a Angular para saber quién entró
-        ]);
-    }
+    // Usamos JWTAuth::user() directamente para evitar errores del editor
+    /** @var \App\Models\User $user */
+    $user = JWTAuth::user();
+
+    return response()->json([
+        'access_token' => $token,
+        'token_type' => 'bearer',
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role
+        ]
+    ]);
+}
 }

@@ -12,7 +12,7 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 // 2. AGREGAMOS "implements JWTSubject" a la clase
 class User extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use  HasFactory, Notifiable;
 
     protected $fillable = [
         'name',

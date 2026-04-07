@@ -20,4 +20,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::get('me', function() {
         return response()->json(auth()->user());
     });
+    Route::middleware('auth:api')->group(function () {
+    Route::post('/canchas', [CanchaController::class, 'store']);
+});
 });
