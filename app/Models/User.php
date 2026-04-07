@@ -45,9 +45,9 @@ class User extends Authenticatable implements JWTSubject
      * Aquí podemos meter el "rol" para que Angular sepa si eres Admin o no.
      */
     public function getJWTCustomClaims()
-    {
-        return [
-            'role' => $this->role,
-        ];
-    }
+{
+    return [
+        'role' => $this->role, // Enviamos el rol dentro del token
+    ];
+}
 }
