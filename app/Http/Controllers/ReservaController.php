@@ -10,9 +10,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ReservaController extends Controller
 {
-    public function __construct()
+    // ELIMINA EL __construct() VIEJO Y PON ESTO:
+    public static function middleware(): array
     {
-        $this->middleware('auth:api');
+        return [
+            'auth:api',
+        ];
     }
 
     /**
