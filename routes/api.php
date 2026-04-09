@@ -27,6 +27,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     // Rutas para Reservas (Usando apiResource para abreviar)
     Route::apiResource('reservas', ReservaController::class);
     Route::get('canchas/{id}/reservas', [ReservaController::class, 'reservasPorCancha']);
+    Route::get('/usuarios-lista', [ReservaController::class, 'listarUsuarios'])->middleware('auth:api');
 
     // Perfil del usuario autenticado
     Route::get('me', function() {
