@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReservaController;
 use App\Http\Controllers\CanchaController;
+use App\Http\Controllers\UsuarioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,6 +18,12 @@ Route::post('login', [AuthController::class, 'login']);
 
 // --- RUTAS PROTEGIDAS (Requieren Token JWT) ---
 Route::group(['middleware' => 'auth:api'], function () {
+
+    // Nuevas rutas para la gestión de usuarios
+    Route::get('usuarios', [UsuarioController::class, 'index']);
+    Route::post('usuarios', [UsuarioController::class, 'store']);
+    Route::put('usuarios/{id}', [UsuarioController::class, 'update']);
+    Route::delete('usuarios/{id}', [UsuarioController::class, 'destroy']);
 
     // Rutas para Canchas (CRUD completo para el Admin)
     Route::get('canchas', [CanchaController::class, 'index']);      // Listar todas

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,12 +16,26 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
         $this->call(CanchaSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // 👤 Administrador (Con método directo)
+        if (!User::where('email', 'admin@gmail.com')->exists()) {
+            User::create([
+                'name' => 'Administrador',
+                'email' => 'admin@gmail.com',
+                'password' => Hash::make('admin123'),
+                'role' => 'admin',
+            ]);
+        }
+
+        // 👥 Cliente (Con método directo - AQUÍ FORZAMOS LA CREACIÓN)
+        if (!User::where('email', 'cliente@gmail.com')->exists()) {
+            User::create([
+                'name' => 'Cliente General',
+                'email' => 'cliente@gmail.com',
+                'password' => Hash::make('cliente123'),
+                'role' => 'cliente',
+            ]);
+        }
     }
 }
